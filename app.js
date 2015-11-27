@@ -2,7 +2,7 @@
 //path: '/rss.php?user_id=284179'
 var express = require('express');
 var path = require('path');
-var torrents_folder = "G:\\Torrents";
+var torrents_folder = path.join(__dirname, 'full-torrents');
 var torrentCollection = new (require('./torrent-collection'))();
 
 var WebTorrent = require('webtorrent');
