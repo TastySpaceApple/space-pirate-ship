@@ -140,11 +140,13 @@ app.post('/play', function(req, res){
   var title = req.body.title;
   console.log('respond ended ' + title);
   airplayer('play/'+title+'.mp4');
+  res.send('success');
 });
 
 app.post('/stop', function(req, res){
 	if(airclient)
 		airclient.stop();
+	res.send('success');
 });
 
 app.get('/', function(req,res){
