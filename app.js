@@ -2,7 +2,8 @@
 //path: '/rss.php?user_id=284179'
 var express = require('express');
 var path = require('path');
-var torrents_folder = path.join(__dirname, 'full-torrents');
+var torrents_folder = path.join('/cargo', 'full-torrents');
+var play_folder = path.join('/cargo', 'play');
 var torrentCollection = new (require('./torrent-collection'))();
 
 var WebTorrent = require('webtorrent');
@@ -58,7 +59,7 @@ function downloadSubtitlesFor(item){
 	busy = true;
 	SubtitleDownloader.process(item.filePath, function(srt){
 		var converter = new Mp4Converter(path.resolve(item.filePath), 
-										path.resolve('play/'+item.title+'.mp4'), 
+										path.resolve(path.join(play_folder, item.title+'.mp4')), 
 										srt ? path.resolve(srt) : null);
 		converter.on('progress', function(p){
 			item.progress = p;
@@ -139,7 +140,7 @@ app.use('/static', express.static('static'));
 app.post('/play', function(req, res){
   var title = req.body.title;
   console.log('respond ended ' + title);
-  airplayer('play/'+title+'.mp4');
+  airplayer(path.join(play_folder, title+'.mp4'));
   res.send('success');
 });
 
