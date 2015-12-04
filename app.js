@@ -24,7 +24,7 @@ torrentCollection.on('new', function(item){
 		console.log('skip ' + item.title);
 		return;
 	}
-	client.add(item.link, {path: torrents_folder}, function (torrent) {
+	else client.add(item.link, {path: torrents_folder}, function (torrent) {
 	   torrent.on('download', function(chunkSize){	  
 		  item.progress = torrent.progress;
 	   });
@@ -151,7 +151,8 @@ app.post('/stop', function(req, res){
 });
 
 app.get('/', function(req,res){
-	res.sendFile('index.html', {root:'./static'})
+   client.destroy();
+   res.sendFile('index.html', {root:'./static'})
 });
 
 var server = app.listen(3000, function () {

@@ -64,8 +64,8 @@ Mp4Converter.prototype.ffmpeg = function() {
 		'experimental',
 		'-movflags',
 		'faststart',
-		'-preset',
-		'fast',
+		//'-preset',
+		//'fast',
 		this.output,
 	]);
 	console.log(args.join(" "));
