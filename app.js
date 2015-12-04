@@ -8,7 +8,7 @@ var torrentCollection = new (require('./torrent-collection'))();
 
 var WebTorrent = require('webtorrent');
 
-var client = new WebTorrent();
+var torrent_client;
 
 var rssfeeder = require('./rss-feeder')(torrentCollection, 
 										'showrss.info', 
@@ -41,6 +41,16 @@ torrentCollection.on('new', function(item){
 	   });
 	});
 });
+
+function startDownloading(){
+	torrent_client = new WebTorrent();
+}
+function stopDownloading(){
+	try{
+		torrent_client.destory();
+	}catch(e){};
+	torrent_client = null;
+}
 var queue = []
 var interval;
 var busy = false;
@@ -84,16 +94,6 @@ torrentCollection.autosave('torrents.json');
 rssfeeder.start();
 
 
-var app = express();
-
-app.get('/torrents', function (req, res) {
-	var c = [];
-	torrentCollection.each(function(torrent){
-		c.push({title:torrent.title, progress:torrent.progress || 0, ready:torrent.ready || false})
-	});
-	res.send(JSON.stringify(c));
-});
-
 var dlnaServer;
 var dlna = require('./dlna-server');
 
@@ -128,6 +128,8 @@ function airplayer(filename){
 		airclient.play(href);
 }
 
+var app = express();
+
 var bodyParser = require('body-parser');
 var favicon = require('express-favicon');
  
@@ -139,9 +141,13 @@ app.use('/static', express.static('static'));
 
 app.post('/play', function(req, res){
   var title = req.body.title;
+  stopDownloading();
   console.log('respond ended ' + title);
   airplayer(path.join(play_folder, title+'.mp4'));
   res.send('success');
+  setTimeout(function(){
+	  startDownloading();
+  }, 10*1000);
 });
 
 app.post('/stop', function(req, res){
@@ -151,8 +157,15 @@ app.post('/stop', function(req, res){
 });
 
 app.get('/', function(req,res){
-   client.destroy();
    res.sendFile('index.html', {root:'./static'})
+});
+
+app.get('/torrents', function (req, res) {
+	var c = [];
+	torrentCollection.each(function(torrent){
+		c.push({title:torrent.title, progress:torrent.progress || 0, ready:torrent.ready || false})
+	});
+	res.send(JSON.stringify(c));
 });
 
 var server = app.listen(3000, function () {
