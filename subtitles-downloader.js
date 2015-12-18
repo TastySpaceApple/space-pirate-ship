@@ -16,6 +16,7 @@ module.exports = {
 		var dest = path.join(fpath.dir, fpath.name) + '.srt';
 		fs.stat(dest, function(err, stat) {
 			if(err == null) {
+				console.log(fpath.name + " already has an srt file...")
 				callback(dest);
 			} else {
 				console.log('Searching for subtitles... '+filename);
@@ -35,8 +36,7 @@ module.exports = {
 				function search(){
 					OpenSubtitles.search(searchOptions[accuracy]).then(function(data){
 						if(data.en){
-							console.log('Subtitles found. Downloading');
-							console.log(data);
+							console.log('Subtitles found. Downloading: '+data.en.url);
 							downloadFile(data.en.url, dest, callback);
 						} else{
 							console.log('Cannot find subtitles, reducing accuracy');

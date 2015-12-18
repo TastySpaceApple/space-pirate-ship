@@ -19,6 +19,7 @@ function RSSTorrentFeeder(torrentCollection, host, path){
 			}
 		}
 		parser.onclosetag = function(tag){
+			param = null;
 			if(tag == 'item'){
 				if(!torrentCollection.has(item))
 					torrentCollection.add(item);
@@ -26,7 +27,9 @@ function RSSTorrentFeeder(torrentCollection, host, path){
 		}
 		
 		parser.ontext = function(text){
-			item && param && (item[param] = text);
+			if(item && param){
+				item[param] = text;
+			}
 		}
 		parser.write(body).end();
 	}

@@ -41,6 +41,7 @@ torrentCollection.on('new', function(item){
 		  item.progress = torrent.progress;
 	   });
 	   torrent.on('done', function(){
+		   console.log("torrent download finished "+item.title);
 		  	var maxIndex = 0, maxSize = 0;
 			torrent.files.map(function (file, i) {
 				if(file.length > maxSize){
@@ -48,6 +49,7 @@ torrentCollection.on('new', function(item){
 					maxIndex = i;
 				}
 			});
+			console.log("Embedding subtitles in file: " + torrent.files[maxIndex].path);
 			item.filePath = path.join(torrents_folder, torrent.files[maxIndex].path);
 			queueConvert(item);
 	   });
@@ -76,7 +78,7 @@ function downloadSubtitlesFor(item){
 										srt ? path.resolve(srt) : null);
 		converter.on('progress', function(p){
 			item.progress = p;
-			console.log("ASD " + p);
+			console.log("Encoding file to mp4 with subtitles: " + p);
 		})
 		converter.on('done', function(){
 			item.ready = true;

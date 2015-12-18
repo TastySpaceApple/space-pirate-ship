@@ -62,13 +62,14 @@ Mp4Converter.prototype.ffmpeg = function() {
 		codecAudio,
 		'-strict',
 		'experimental',
+		'-c:s:0',
 		'-movflags',
 		'faststart',
 		//'-preset',
 		//'fast',
 		this.output,
 	]);
-	console.log(args.join(" "));
+	console.log("Executing ffmpeg " + args.join(" "));
 	var child = child_process.spawn('ffmpeg', args);
 	var that = this;
 	
