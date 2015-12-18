@@ -31,6 +31,7 @@ var SubtitleDownloader = require('./subtitles-downloader');
 SubtitleDownloader.login();
 										
 torrentCollection.on('new', function(item){
+	console.log("item loaded " + item.title);
 	if(item.ready){
 		item.progress = 1;
 		console.log('skip ' + item.title);
@@ -51,6 +52,7 @@ torrentCollection.on('new', function(item){
 			});
 			console.log("Embedding subtitles in file: " + torrent.files[maxIndex].path);
 			item.filePath = path.join(torrents_folder, torrent.files[maxIndex].path);
+			item.hash = torrent.infoHash;
 			queueConvert(item);
 	   });
 	});
@@ -83,7 +85,7 @@ function downloadSubtitlesFor(item){
 		converter.on('done', function(){
 			item.ready = true;
 			item.progress = 1;
-			client.remove(item.link); //maybe?
+			client.remove(item.hash); //maybe?
 			torrentCollection.save();
 			console.log("ready!");
 			setTimeout(function(){
