@@ -15,7 +15,7 @@ var torrentCollection = new (require('./torrent-collection'))();
 
 var WebTorrent = require('webtorrent');
 
-var client = new WebTorrent({maxPeers:20});
+var client = new WebTorrent();
 
 var rssfeeder = require('./rss-feeder')(torrentCollection, 
 										'showrss.info', 
@@ -26,7 +26,7 @@ var SubtitleDownloader = require('./subtitles-downloader');
 SubtitleDownloader.login();
 										
 torrentCollection.on('new', function(item){
-	if(item.ready){
+	if(item.OBready){
 		item.progress = 1;
 		console.log('skip ' + item.title);
 		return;
@@ -76,7 +76,6 @@ function downloadSubtitlesFor(item){
 		converter.on('done', function(){
 			item.ready = true;
 			item.progress = 1;
-			client.remove(item.link); //maybe?
 			torrentCollection.save();
 			console.log("ready!");
 			setTimeout(function(){
@@ -87,8 +86,8 @@ function downloadSubtitlesFor(item){
 		converter.start();
 	});
 }
-torrentCollection.load(path.join(__dirname, 'torrents.json'));
-torrentCollection.autosave(path.join(__dirname, 'torrents.json'));
+torrentCollection.load('torrents.json');
+torrentCollection.autosave('torrents.json');
 										
 rssfeeder.start();
 
