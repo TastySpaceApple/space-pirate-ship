@@ -62,7 +62,6 @@ Mp4Converter.prototype.ffmpeg = function() {
 		codecAudio,
 		'-strict',
 		'experimental',
-		'-c:s:0',
 		'-movflags',
 		'faststart',
 		//'-preset',
