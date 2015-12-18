@@ -3,8 +3,13 @@
 var express = require('express');
 var path = require('path');
 var fs = require('fs');
-var torrents_folder = path.join('/cargo', 'full-torrents');
-var play_folder = path.join('/cargo', 'play');
+var querystring = require('querystring');
+
+var isWin = /^win/.test(process.platform);
+var rootDir = isWin ? __dirname : '/cargo';
+
+var torrents_folder = path.join(rootDir, 'full-torrents');
+var play_folder = path.join(rootDir, 'play');
 
 if (!fs.existsSync(play_folder)){
     fs.mkdirSync(play_folder);
@@ -136,7 +141,7 @@ app.use(favicon(__dirname + '/static/favicon.ico'));
 
 app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 
-app.use('/static', express.static('static'));
+app.use('/', express.static('static'));
 
 app.post('/play', function(req, res){
   var title = req.body.title;
@@ -153,6 +158,17 @@ app.post('/stop', function(req, res){
 
 app.get('/', function(req,res){
    res.sendFile('index.html', {root:path.join(__dirname, 'static')})
+});
+
+app.post('/loot', function(req, res){
+	var magnetUrl = req.body.magnetUrl;
+	var info = querystring.parse(magnetUrl);
+	torrentCollection.add({link:magnetUrl, title:info.dn || "Unknown"})
+	res.send("Aye! Going on the account to get ye treasure, landlubber!");
+});
+
+app.get('/loot', function(req, res){
+	res.sendFile('add.html', {root:path.join(__dirname, 'static')})
 });
 
 app.get('/torrents', function (req, res) {
