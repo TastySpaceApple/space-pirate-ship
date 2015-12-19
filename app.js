@@ -85,7 +85,11 @@ function downloadSubtitlesFor(item){
 		converter.on('done', function(){
 			item.ready = true;
 			item.progress = 1;
-			client.remove(item.hash); //maybe?
+			try{
+			  client.remove(item.hash); //maybe?
+			}catch(e){
+			  console.log("Could not remove " + item.title);
+			}
 			torrentCollection.save();
 			console.log("ready!");
 			setTimeout(function(){

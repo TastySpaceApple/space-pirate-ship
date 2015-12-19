@@ -53,7 +53,9 @@ Mp4Converter.prototype.ffmpeg = function() {
 		'-i', 
 		this.srt,
 		'-c:s', 
-		'mov_text'
+		'mov_text',
+		'-metadata:s:s:0',
+		'language=eng',
 	]);
 	args = args.concat([
 		'-c:v',
@@ -62,10 +64,6 @@ Mp4Converter.prototype.ffmpeg = function() {
 		codecAudio,
 		'-strict',
 		'experimental',
-		'-movflags',
-		'faststart',
-		//'-preset',
-		//'fast',
 		this.output,
 	]);
 	console.log("Executing ffmpeg " + args.join(" "));
