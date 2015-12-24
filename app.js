@@ -5,16 +5,20 @@ var path = require('path');
 var fs = require('fs');
 var querystring = require('querystring');
 
-var isWin = /^win/.test(process.platform);
-var rootDir = isWin ? __dirname : '/cargo';
+var cargoDir = path.join(__dirname, 'cargo');
 
-var torrents_folder = path.join(rootDir, 'full-torrents');
-var play_folder = path.join(rootDir, 'play');
+var torrents_folder = path.join(cargoDir, 'full-torrents');
+var play_folder = path.join(cargoDir, 'play');
 
-if (!fs.existsSync(play_folder)){
-    fs.mkdirSync(play_folder);
-  console.log("play folder created!");
+function checkMake(folder){
+  if(!fs.existsSync(folder)){
+    fs.mkdirSync(folder);
+    console.log("folder created! "+folder);
+  }
 }
+checkMake(cargoDir);
+checkMake(torrents_folder);
+checkMake(play_folder)
 
 var torrentCollection = new (require('./torrent-collection'))();
 
