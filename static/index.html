@@ -4,66 +4,10 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 	<title>Ahoy!</title>
-	<style type="text/css">
-	#listTorrents {
-		list-style:none;
-		margin:0px;
-		padding:0px;
-		position:absolute;
-		bottom:100px;
-		top:0px;
-		left:0px;
-		right:0px;
-		overflow:auto;
-	}
-	#listTorrents li{
-		display:block;
-		margin:5px;
-		border:1px solid #2c2c2c;
-		padding:1em;
-		-webkit-touch-callout: none;
-		-webkit-user-select: none;
-		-khtml-user-select: none;
-		-moz-user-select: none;
-		-ms-user-select: none;
-		user-select: none;
-	}
-	#listTorrents li.ready{
-		background:#468966;
-		cursor:pointer;
-	}
-
-	#listTorrents li.ready:hover{
-		background:#FFF0A5;
-	}
-	#listTorrents li.ready[data-selected=true]{
-		background:#FFB03B;
-	}
-	#listTorrents li.playing{
-		background:orange;
-	}
-	#bottomBar {
-		position:absolute;
-		bottom:0px;
-		height:100px;
-		left:0px;
-		right:0px;
-		box-shadow: 0px -2px 2px 1px #ccc;
-		display:table;
-		width:100%;
-		border-top: 1px solid black;
-		background:white;
-	}
-	#bottomBar button{
-		height:100px;
-		width:50%;
-		display:table-cell;
-	}
-	</style>
+	<link type="text/css" rel="stylesheet" href="css/stylesheet.css"/>
 </head>
 <body>
   <ul id="listTorrents">
-
   </ul>
   <div id="bottomBar">
 	<button id="btnPlay">Play</button>
@@ -72,96 +16,111 @@
   <script type="text/javascript">
 	  var collection = [];
 	  var selectedItem;
-	  function get(){
-		try{	
-			httpGetAsync('/torrents', function(data){
-				var c = JSON.parse(data);
-				for(var i=0; i < c.length; i++){
-					var item = has(c[i]);
-					if(item){
-						item.progress = c[i].progress;
-						item.ready = c[i].ready;
-						update(item);
-					}
-					else
-						add(c[i]);
+	  
+	  var requests = {
+		  get : function (url, callback){
+				var xmlHttp = new XMLHttpRequest();
+				xmlHttp.onreadystatechange = function() { 
+					if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+						callback(xmlHttp.responseText);
 				}
-				setTimeout(get, 1000);
-			})
-		}catch(e){
-			setTimeout(get, 1000);
-		}
+				xmlHttp.open("GET", url, true); // true for asynchronous 
+				xmlHttp.send(null);
+			},
+			post : function(url, data){
+				var xmlHttp = new XMLHttpRequest();
+				xmlHttp.open('POST', '/play', false);
+				xmlHttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+				xmlHttp.send(data);
+			}
 	  }
-	  function add(item){
-		item.dom = document.createElement('li');
-		item.dom.addEventListener('click', function(){
+	  
+	  function Torrent(data){
+		var dom = document.createElement('li');
+		
+		var progressbar = document.createElement('div');
+		progressbar.className = "progressbar";
+		
+		var textel = document.createElement('h3');
+		textel.innerHTML = data.title;
+		
+		dom.appendChild(progressbar);
+		dom.appendChild(textel);
+		
+		var _selected = false;
+		dom.addEventListener('click', function(){
 			item_clicked(item);
 		});
-		collection.push(item);
-		document.querySelector('#listTorrents').appendChild(item.dom);
-		update(item);
-	  }
-	  
-	  function item_clicked(item){
-		console.log(item);
-		if(item.ready && !item.selected){
-			if(selectedItem){
-				selectedItem.dom.setAttribute('data-selected', 'false');
-				selectedItem.dom.setAttribute('data-playing', 'false');
+		
+		function update(newData){
+			data = newData;
+			textel.innerHTML = data.title + ' : ' + (data.progress*100).toFixed(2) + '%';
+			progressbar.style.width = data.progress*100+'%';
+			if(data.ready)
+				dom.className = 'ready';
+		}
+		
+		function init(){
+			update(data);
+		}
+		
+		init();
+		
+		function selected(val){
+			if(typeof(val) == 'undefined')
+				return _selected;
+			else{
+				_selected = val
 			}
-			item.dom.setAttribute('data-selected', 'true');
-			selectedItem = item;
+		}
+		
+		function play(){
+			requests.post('/play', 'title='+data.title);
+		}
+		
+		return{
+			selected : selected,
+			play:play,
+			dom:dom,
+			update: update,
+			title: function(){ return data.title; }
 		}
 	  }
 	  
-	  function update(item){
-	  	item.dom.innerHTML = item.title + ' : ' + (item.progress*100).toFixed(2) + '%';
-		if(item.ready)
-			item.dom.className = "ready";
+	  function add(data){
+		
 	  }
+
 	  
 	  function has(item){
 	  	for(var i=0; i<collection.length; i++){
-			if(collection[i].title == item.title)
+			if(collection[i].title() == item.title)
 				return collection[i];
 		}
 		return null;
 	  }
-	  function httpGetAsync(theUrl, callback)
-		{
-			var xmlHttp = new XMLHttpRequest();
-			xmlHttp.onreadystatechange = function() { 
-				if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-					callback(xmlHttp.responseText);
+	  
+	  function fetch(){
+	  	requests.get('/torrents', function(responseText){
+			var c = JSON.parse(responseText);
+			for(var i=0; i < c.length; i++){
+				var torrent = has(c[i]);
+				if(torrent)
+					torrent.update(c[i]);
+				else{
+					torrent = new Torrent(c[i]);
+					collection.push(torrent);
+					document.querySelector('#listTorrents').appendChild(torrent.dom);
+				}
 			}
-			xmlHttp.open("GET", theUrl, true); // true for asynchronous 
-			xmlHttp.send(null);
-		}
-		
-	  function doPlay(item){
-		if(!item) return;
-		item.playing = true;
-		console.log('doing play '+item.title)
-	    var xmlHttp = new XMLHttpRequest();
-		xmlHttp.open('POST', '/play', false);
-		xmlHttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-		xmlHttp.send('title='+item.title);
-	  }
-	  function doStop(){
-	    var xmlHttp = new XMLHttpRequest();
-		xmlHttp.open('POST', '/stop', false); 
-		xmlHttp.send();
+			setTimeout(fetch, 1000);
+		})
 	  }
 	  
 	  window.onload = function(){
-		get();
-		document.querySelector('#btnPlay').addEventListener('click', function(){
-			doPlay(selectedItem);
-		})
-		document.querySelector('#btnStop').addEventListener('click', function(){
-			doStop();
-		})
+		fetch();
 	  }
   </script>
 </body>
 </html>
+

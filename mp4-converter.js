@@ -50,12 +50,13 @@ Mp4Converter.prototype.ffmpeg = function() {
 		'-i',
 		this.input];
 	if(this.srt) args = args.concat([
-		'-i', 
+		'-fix_sub_duration',
+		'-i',
 		this.srt,
 		'-c:s', 
 		'mov_text',
 		'-metadata:s:s:0',
-		'language=eng',
+		'language=eng'
 	]);
 	args = args.concat([
 		'-c:v',

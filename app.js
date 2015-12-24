@@ -149,11 +149,12 @@ var app = express();
 var bodyParser = require('body-parser');
 var favicon = require('express-favicon');
  
+
+app.use('/', express.static('static'));
+
 app.use(favicon(__dirname + '/static/favicon.ico'));
 
 app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
-
-app.use('/', express.static('static'));
 
 app.post('/play', function(req, res){
   var title = req.body.title;
@@ -176,7 +177,7 @@ app.post('/loot', function(req, res){
 	var magnetUrl = req.body.magnetUrl;
 	var info = querystring.parse(magnetUrl);
 	torrentCollection.add({link:magnetUrl, title:info.dn || "Unknown"})
-	res.send("Aye! Going on the account to get ye treasure, landlubber!");
+	res.send('<h1 style="font-family:monospace>" Aye! Going on the account to get ye treasure, landlubber!</h1>');
 });
 
 app.get('/loot', function(req, res){
