@@ -35,7 +35,7 @@ function RSSTorrentFeeder(torrentCollection, host, path){
 	}
 
 	function check(){
-		console.log(host, path);
+		console.log("Getting RSS Feed: ", host, path);
 		http.get({
 			host: host,
 			path: path,

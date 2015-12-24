@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+	<title>Ahoy!</title>
+	<style type="text/css">
+	#listTorrents {
+		list-style:none;
+		margin:0px;
+		padding:0px;
+		position:absolute;
+		bottom:100px;
+		top:0px;
+		left:0px;
+		right:0px;
+		overflow:auto;
+	}
+	#listTorrents li{
+		display:block;
+		margin:10px 5px;
+		border:1px solid #2c2c2c;
+		padding:1em;
+		-webkit-touch-callout: none;
+		-webkit-user-select: none;
+		-khtml-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+		position:relative;
+		font-weight:bold;
+		height:12px;
+		font-size:20px;
+		font-family:monospace;
+	}
+	#listTorrents li div{
+		position:absolute;
+		top:0px;
+		left:0px;
+		height:100%;
+		line-height:40px; /* :\  */
+		text-indent: 1em;
+		white-space:nowrap;
+		overflow:visible;
+	}
+	#listTorrents li div::before{
+		content:' ';
+		background-image:url('img/waves.png');
+		background-repeat: repeat-x;
+		background-position: bottom;
+		background-size: auto 20px;
+		position:absolute;
+		top:0px;
+		left:0px;
+		height:100%;
+		overflow:hidden;
+		width: 100%;
+		z-index:-1;
+		display:block;
+	}
+	#listTorrents li div:after{
+		background-image:url('img/ship_small.png');
+		width:50px;
+		height: 44px;
+		background-repeat: repeat-x;
+		background-size: 50px 44px;
+		content: ' ';
+		display:block;
+		position:absolute;
+		bottom:0px;
+		
+		right:-25px;
+		z-index:-1;
+		/*animation: ship-tilt 2s infinite;*/
+		
+	}
+	#listTorrents li.ready{
+		background:#468966;
+		cursor:pointer;
+	}
+
+	#listTorrents li.ready:hover{
+		background:#FFF0A5;
+	}
+	#listTorrents li.ready[data-selected=true]{
+		background:#FFB03B;
+	}
+	#listTorrents li.playing{
+		background:orange;
+	}
+	#bottomBar {
+		position:absolute;
+		bottom:0px;
+		height:100px;
+		left:0px;
+		right:0px;
+		box-shadow: 0px -2px 2px 1px #ccc;
+		display:table;
+		width:100%;
+		border-top: 1px solid black;
+		background:white;
+	}
+	#bottomBar button{
+		height:100px;
+		width:50%;
+		display:table-cell;
+	}
+	@keyframes ship-tilt{
+		0% {transform: rotate(0deg);}
+		20% {transform: rotate(-5deg);}
+		80% {transform: rotate(5deg);}
+	}
+	</style>
+</head>
+<body>
+  <ul id="listTorrents">
+		<li><div style="width:5%;">test : 42.00%</div></li>
+  </ul>
+  <div id="bottomBar">
+	<button id="btnPlay">Play</button>
+	<button id="btnStop">Stop</button>
+  </div>
+  <script type="text/javascript">
+	  var collection = [{title:'test', progress:0.42, ready:false}];
+	  var selectedItem;
+	  function add(item){
+		item.dom = document.createElement('li');
+		item.dom.addEventListener('click', function(){
+			item_clicked(item);
+		});
+		collection.push(item);
+		document.querySelector('#listTorrents').appendChild(item.dom);
+		update(item);
+	  }
+	  
+	  function item_clicked(item){
+		console.log(item);
+		if(item.ready && !item.selected){
+			if(selectedItem){
+				selectedItem.dom.setAttribute('data-selected', 'false');
+				selectedItem.dom.setAttribute('data-playing', 'false');
+			}
+			item.dom.setAttribute('data-selected', 'true');
+			selectedItem = item;
+		}
+	  }
+	  
+	  function update(item){
+	  	item.dom.innerHTML = item.title + ' : ' + (item.progress*100).toFixed(2) + '%';
+		if(item.ready)
+			item.dom.className = "ready";
+	  }
+	  
+	  function has(item){
+	  	for(var i=0; i<collection.length; i++){
+			if(collection[i].title == item.title)
+				return collection[i];
+		}
+		return null;
+	  }
+	  function httpGetAsync(theUrl, callback)
+		{
+			var xmlHttp = new XMLHttpRequest();
+			xmlHttp.onreadystatechange = function() { 
+				if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+					callback(xmlHttp.responseText);
+			}
+			xmlHttp.open("GET", theUrl, true); // true for asynchronous 
+			xmlHttp.send(null);
+		}
+		
+	  function doPlay(item){
+		if(!item) return;
+		item.playing = true;
+		console.log('doing play '+item.title)
+	    var xmlHttp = new XMLHttpRequest();
+		xmlHttp.open('POST', '/play', false);
+		xmlHttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+		xmlHttp.send('title='+item.title);
+	  }
+	  function doStop(){
+	    var xmlHttp = new XMLHttpRequest();
+		xmlHttp.open('POST', '/stop', false); 
+		xmlHttp.send();
+	  }
+	  window.onload = function(){
+		add(collection[0]);
+	  }
+  </script>
+</body>
+</html>
