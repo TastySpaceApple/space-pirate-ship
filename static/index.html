@@ -48,9 +48,6 @@
 		dom.appendChild(textel);
 		
 		var _selected = false;
-		dom.addEventListener('click', function(){
-			item_clicked(item);
-		});
 		
 		function update(newData){
 			data = newData;
@@ -70,12 +67,19 @@
 			if(typeof(val) == 'undefined')
 				return _selected;
 			else{
-				_selected = val
+				_selected = val;
+				if(_selected)
+					dom.setAttribute('data-selected', 'true');
+				else{
+					dom.setAttribute('data-selected', 'false');
+					dom.setAttribute('data-playing', 'false');
+				}
 			}
 		}
 		
 		function play(){
 			requests.post('/play', 'title='+data.title);
+			dom.setAttribute('data-playing', 'true');
 		}
 		
 		return{
@@ -86,11 +90,6 @@
 			title: function(){ return data.title; }
 		}
 	  }
-	  
-	  function add(data){
-		
-	  }
-
 	  
 	  function has(item){
 	  	for(var i=0; i<collection.length; i++){
@@ -119,6 +118,28 @@
 	  
 	  window.onload = function(){
 		fetch();
+		document.querySelector('#listTorrents').addEventListener('click', function(e){
+			if(e.target == this) return; //must have pressed between the gaps
+			var tdom = e.target.parentNode;
+			var torrent;
+			for(var i=0; i<collection.length; i++){
+				if(collection[i].dom == tdom)
+					torrent = collection[i];
+			}
+			torrent.selected(true);
+			if(selectedItem)
+				selectedItem.selected(false);
+			selectedItem = torrent;
+		});
+		
+		document.querySelector('#btnPlay').addEventListener('click', function(){
+			if(selectedItem)
+				selectedItem.play();
+		})
+		
+		document.querySelector('#btnStop').addEventListener('click', function(){
+			requests.post('/stop');
+		})
 	  }
   </script>
 </body>

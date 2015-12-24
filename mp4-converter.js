@@ -38,6 +38,9 @@ Mp4Converter.prototype.ffmpeg = function() {
 		}
 	});
 	
+	if(this.srt){
+	}
+	
 	this.emit('codecVideo', codecVideo);
 	this.emit('codecAudio', codecAudio);
 	
@@ -46,7 +49,6 @@ Mp4Converter.prototype.ffmpeg = function() {
 	
 	var args = [
 		'-y',
-		'-hide_banner',
 		'-i',
 		this.input];
 	if(this.srt) args = args.concat([
@@ -56,15 +58,13 @@ Mp4Converter.prototype.ffmpeg = function() {
 		'-c:s', 
 		'mov_text',
 		'-metadata:s:s:0',
-		'language=eng'
+		'language=eng',
 	]);
 	args = args.concat([
 		'-c:v',
 		codecVideo,
 		'-c:a',
 		codecAudio,
-		'-strict',
-		'experimental',
 		this.output,
 	]);
 	console.log("Executing ffmpeg " + args.join(" "));

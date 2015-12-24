@@ -57,10 +57,27 @@ module.exports = {
 
 	},
 }
+/*function downloadFile (url, dest, callback){
+	console.log('Downloading from '+url);
+	var file = fs.createWriteStream(dest, {defaultEncoding: 'utf8'});
+	var req = http.request(url, function(response) {
+	  response.setEncoding('utf8');
+	  response.pipe(file);
+	  callback(dest);
+	});
+	/*var request = http.get(url, function(resp) {
+		fs.writeFile(dest, resp, 'utf8', function (err) {
+			if (err) throw err;
+			callback(dest);
+		});
+	});*/
+//}
+
 function downloadFile (url, dest, callback){
 	console.log('Downloading from '+url);
-	var file = fs.createWriteStream(dest);
+	var file = fs.createWriteStream(dest, {defaultEncoding: 'utf8'});
 	var request = http.get(url, function(response) {
+	    response.setEncoding('utf8');
 		response.pipe(file);
 		callback(dest);
 	});
