@@ -150,7 +150,7 @@ var bodyParser = require('body-parser');
 var favicon = require('express-favicon');
  
 
-app.use('/', express.static('static'));
+app.use('/', express.static(path.join(__dirname, 'static')));
 
 app.use(favicon(__dirname + '/static/favicon.ico'));
 
