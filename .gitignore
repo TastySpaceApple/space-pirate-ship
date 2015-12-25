@@ -2,3 +2,5 @@ torrents.json
 node_modules
 run
 cargo
+shiplog.log
+*.log

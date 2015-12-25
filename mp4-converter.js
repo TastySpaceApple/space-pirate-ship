@@ -1,6 +1,7 @@
 var child_process = require('child_process');
 var events = require('events');
 var util = require('util');
+var logger = require('./logger');
 
 var Mp4Converter = function(input, output, srt) {
 	this.input = input;
@@ -67,14 +68,16 @@ Mp4Converter.prototype.ffmpeg = function() {
 		codecAudio,
 		this.output,
 	]);
-	console.log("Executing ffmpeg " + args.join(" "));
+	logger.heading('RUNNING FFMPEG');
+	logger.log("Executing ffmpeg " + args.join(" "));
 	var child = child_process.spawn('ffmpeg', args);
 	var that = this;
 	
 	child.stdout.on('data', function(data) {
-		
+		logger.log(data.toString());
 	});
 	child.stderr.on('data', function(data) {
+		logger.log(data.toString());
 		var duration = parseFfmpegOutput(data.toString());
 		if (duration) {
 			var progress = duration / that.duration;

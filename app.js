@@ -10,10 +10,14 @@ var cargoDir = path.join(__dirname, 'cargo');
 var torrents_folder = path.join(cargoDir, 'full-torrents');
 var play_folder = path.join(cargoDir, 'play');
 
+var logger = require('./logger');
+
+logger.heading('STARTED')
+
 function checkMake(folder){
   if(!fs.existsSync(folder)){
     fs.mkdirSync(folder);
-    console.log("folder created! "+folder);
+	logger.log("folder created! "+folder);
   }
 }
 checkMake(cargoDir);
@@ -46,7 +50,7 @@ torrentCollection.on('new', function(item){
 		  item.progress = torrent.progress;
 	   });
 	   torrent.on('done', function(){
-		   console.log("torrent download finished "+item.title);
+		   logger.log("torrent download finished "+item.title);
 		  	var maxIndex = 0, maxSize = 0;
 			torrent.files.map(function (file, i) {
 				if(file.length > maxSize){
@@ -54,13 +58,14 @@ torrentCollection.on('new', function(item){
 					maxIndex = i;
 				}
 			});
-			console.log("Embedding subtitles in file: " + torrent.files[maxIndex].path);
+			logger.log("Embedding subtitles in file: " + torrent.files[maxIndex].path);
 			item.filePath = path.join(torrents_folder, torrent.files[maxIndex].path);
 			item.hash = torrent.infoHash;
 			queueConvert(item);
 	   });
 	});
 });
+
 
 var queue = []
 var interval;
@@ -184,6 +189,10 @@ app.get('/loot', function(req, res){
 	res.sendFile('add.html', {root:path.join(__dirname, 'static')})
 });
 
+app.get('/log', function(req, res){
+	res.sendFile(logger.logfile_path)
+});
+
 app.get('/torrents', function (req, res) {
 	var c = [];
 	torrentCollection.each(function(torrent){
@@ -197,4 +206,5 @@ var server = app.listen(3000, function () {
   var port = server.address().port;
 
   console.log('Example app listening at http://%s:%s', host, port);
+  logger.log('server running on ' + host + ':' + port);
 });
