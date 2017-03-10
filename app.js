@@ -26,9 +26,8 @@ checkMake(play_folder)
 
 var torrentCollection = new (require('./torrent-collection'))();
 
-var WebTorrent = require('webtorrent');
-
-var client = new WebTorrent({maxPeers:20});
+var TorrentClient = require('./torrent-client')
+    , client = new TorrentClient();
 
 var rssfeeder = require('./rss-feeder')(torrentCollection, 
 										'showrss.info', 
@@ -46,13 +45,13 @@ torrentCollection.on('new', function(item){
 		return;
 	}
 	else client.add(item.link, {path: torrents_folder}, function (torrent) {
-	   torrent.on('download', function(chunkSize){	  
+	   torrent.on('download', function(){	  
 		  item.progress = torrent.progress;
 	   });
 	   torrent.on('done', function(){
-		   logger.log("torrent download finished "+item.title);
-		  	var maxIndex = 0, maxSize = 0;
-			torrent.files.map(function (file, i) {
+		  logger.log("torrent download finished "+item.title);
+		  var maxIndex = 0, maxSize = 0;
+      torrent.files.map(function (file, i) {
 				if(file.length > maxSize){
 					maxSize = file.length;
 					maxIndex = i;
@@ -109,6 +108,7 @@ function downloadSubtitlesFor(item){
 		converter.start();
 	});
 }
+console.log(path.join(__dirname, 'torrents.json'));
 torrentCollection.load(path.join(__dirname, 'torrents.json'));
 torrentCollection.autosave(path.join(__dirname, 'torrents.json'));
 										
@@ -124,7 +124,8 @@ var AirplayBrowser = new require( './browser' ).Browser;
 var AirplayClient = require( './airplay-client' ).Client;
 var airclient;
 
-function airplayer(filename){
+function airplayer(filename, host){
+  host = host || devices[0].host;
 	if(dlnaServer)
 		dlnaServer.destroy();
 	if(airclient)
@@ -138,16 +139,16 @@ function airplayer(filename){
 
 	var href = ('http://' + networkAddress() + ':' + dlnaServer.address().port + '/0');
 	
-	if(!airclient){
-		var browser = new AirplayBrowser();
-		browser.on( 'deviceOn', function( device ) {
-			console.log('connected to ' + device.name);
-			airclient = new AirplayClient(device.host);
-			airclient.play(href);
-		});
-	}else
-		airclient.play(href);
+	if(!airclient || airclient.host != host)
+    airclient = new AirplayClient(host);
+	airclient.play(href);
 }
+var browser = new AirplayBrowser();
+var devices = [];
+  browser.on( 'deviceOn', function( device ) {
+  devices.push({name:device.name, host:device.host});
+});
+  
 
 var app = express();
 
@@ -163,8 +164,9 @@ app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x
 
 app.post('/play', function(req, res){
   var title = req.body.title;
+  var host = req.body.host;
   console.log('respond ended ' + title);
-  airplayer(path.join(play_folder, title+'.mp4'));
+  airplayer(path.join(play_folder, title+'.mp4'), host);
   res.send('success');
 });
 
@@ -180,7 +182,9 @@ app.get('/', function(req,res){
 
 app.post('/loot', function(req, res){
 	var magnetUrl = req.body.magnetUrl;
+  console.log(magnetUrl);
 	var info = querystring.parse(magnetUrl);
+  console.log(info);
 	torrentCollection.add({link:magnetUrl, title:info.dn || "Unknown"})
 	res.send('<h1 style="font-family:monospace>" Aye! Going on the account to get ye treasure, landlubber!</h1>');
 });
@@ -201,7 +205,21 @@ app.get('/torrents', function (req, res) {
 	res.send(JSON.stringify(c));
 });
 
-var server = app.listen(3000, function () {
+app.get('/devices', function(req, res){
+  res.send(JSON.stringify(devices));
+})
+
+var multer  = require('multer')
+var upload = multer({ dest: 'uploads/' })
+
+app.post('/upload', upload.single('vidfile'), function (req, res, next) {
+  // req.file is the `avatar` file
+  // req.body will hold the text fields, if there were any
+  res.send('uploaded');
+})
+
+
+var server = app.listen(5000, function () {
   var host = server.address().address;
   var port = server.address().port;
 

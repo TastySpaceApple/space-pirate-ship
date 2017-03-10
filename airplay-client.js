@@ -17,9 +17,9 @@ var CLIENT_PING_DELAY = 30; // 心跳间隔(s)
 
 var Client = function ( host, port, credentials ) {
     events.EventEmitter.call( this );
-	
+	this.host = host;
 	port = port || 7000; // 7000 - default port for airplay
-	
+	this.port = port;
     var self = this;
 
     this.responseQueue = [];

@@ -43,6 +43,7 @@ Browser.prototype.init = function (  ) {
 
     setTimeout(function onTimeout() {
       browser.stop();
+      self.emit('end')
     }, TIMEOUT);
 
 };

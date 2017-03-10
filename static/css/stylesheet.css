@@ -9,6 +9,19 @@
 	right:0px;
 	overflow:auto;
 }
+#listTorrents:empty:before{
+  font-size:32px;
+  content:'Welcome! \A Drag magnet links here, edit the rss feeder in app.js, or go to /loot';
+  white-space: pre-wrap; /* or pre-wrap */
+  width:70%;
+  position:absolute;
+  left:50%;
+  top:50%;
+  display:block;
+  text-align:center;
+  transform: translate(-50%, -50%);
+  color:gray;
+}
 
 #listTorrents li{
 	overflow:hidden;

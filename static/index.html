@@ -7,9 +7,10 @@
 	<link type="text/css" rel="stylesheet" href="css/stylesheet.css"/>
 </head>
 <body>
-  <ul id="listTorrents">
-  </ul>
+  <ul id="listTorrents"></ul>
   <div id="bottomBar">
+  <select id="play-devices" name="play-devices" style="position:absolute; top:0; left:0;">
+  </select>
 	<button id="btnPlay">Play</button>
 	<button id="btnStop">Stop</button>
   </div>
@@ -29,7 +30,7 @@
 			},
 			post : function(url, data){
 				var xmlHttp = new XMLHttpRequest();
-				xmlHttp.open('POST', '/play', false);
+				xmlHttp.open('POST', url, false);
 				xmlHttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 				xmlHttp.send(data);
 			}
@@ -78,7 +79,8 @@
 		}
 		
 		function play(){
-			requests.post('/play', 'title='+data.title);
+      var host = document.getElementById('play-devices').value;
+			requests.post('/play', 'title='+data.title+'&host='+host);
 			dom.setAttribute('data-playing', 'true');
 		}
 		
@@ -117,30 +119,66 @@
 	  }
 	  
 	  window.onload = function(){
-		fetch();
-		document.querySelector('#listTorrents').addEventListener('click', function(e){
-			if(e.target == this) return; //must have pressed between the gaps
-			var tdom = e.target.parentNode;
-			var torrent;
-			for(var i=0; i<collection.length; i++){
-				if(collection[i].dom == tdom)
-					torrent = collection[i];
-			}
-			torrent.selected(true);
-			if(selectedItem)
-				selectedItem.selected(false);
-			selectedItem = torrent;
-		});
-		
-		document.querySelector('#btnPlay').addEventListener('click', function(){
-			if(selectedItem)
-				selectedItem.play();
-		})
-		
-		document.querySelector('#btnStop').addEventListener('click', function(){
-			requests.post('/stop');
-		})
+      fetch();
+      document.querySelector('#listTorrents').addEventListener('click', function(e){
+        if(e.target == this) return; //must have pressed between the gaps
+        var tdom = e.target.parentNode;
+        var torrent;
+        for(var i=0; i<collection.length; i++){
+          if(collection[i].dom == tdom)
+            torrent = collection[i];
+        }
+        torrent.selected(true);
+        if(selectedItem)
+          selectedItem.selected(false);
+        selectedItem = torrent;
+      });
+      
+      document.querySelector('#btnPlay').addEventListener('click', function(){
+        if(selectedItem)
+          selectedItem.play();
+      })
+      
+      document.querySelector('#btnStop').addEventListener('click', function(){
+        requests.post('/stop');
+      })
 	  }
+    document.querySelector('#listTorrents').addEventListener('drop', function(event){
+      event.stopPropagation(); 
+      event.preventDefault(); 
+      if(event.dataTransfer.files && event.dataTransfer.files.length > 0)
+        uploadFile(event.dataTransfer.files[0]);
+      else
+        requests.post('/loot', 'magnetUrl=' + encodeURIComponent(event.dataTransfer.getData("text")));
+    })
+    document.querySelector('#listTorrents').addEventListener('dragover', function(event){
+      event.stopPropagation(); event.preventDefault();
+    });
+    function uploadFile(file){
+      var formData = new FormData();
+      formData.append('vidfile', file, file.name);
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', 'upload', true);
+      xhr.send(formData);
+    }
+    
+    function DeviceList(element){
+      this.element = element;
+      this.load();
+    }
+    DeviceList.prototype.load = function(){
+      var el = this.element;
+      console.log('loading', el)
+      requests.get('/devices', function(responseText){
+        var html = '';
+        var devices = JSON.parse(responseText);
+        console.log(devices);
+        for(var i in devices)
+          html += '<option value="'+devices[i].host+'">'+devices[i].name+'</option>'  
+        el.innerHTML = html;
+      });
+    }
+    new DeviceList(document.getElementById('play-devices'))
   </script>
 </body>
 </html>
