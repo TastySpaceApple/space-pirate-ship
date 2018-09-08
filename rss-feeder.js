@@ -50,7 +50,7 @@ function RSSTorrentFeeder(torrentCollection, host, path){
 				process(body);
 				
 			});
-		});
+		}).on("error", function (){console.log("GET request error")});;
 	}
 	
 	return {

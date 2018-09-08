@@ -31,7 +31,7 @@ var TorrentClient = require('./torrent-client')
 
 var rssfeeder = require('./rss-feeder')(torrentCollection, 
 										'showrss.info', 
-										'/rss.php?user_id=284179');
+										'user/129715.rss?magnets=true&namespaces=true&name=null&quality=null&re=null');
 var Mp4Converter = require('./mp4-converter');
 var SubtitleDownloader = require('./subtitles-downloader');
 
@@ -185,9 +185,13 @@ app.post('/loot', function(req, res){
   console.log(magnetUrl);
 	var info = querystring.parse(magnetUrl);
   console.log(info);
-	torrentCollection.add({link:magnetUrl, title:info.dn || "Unknown"})
-	res.send('<h1 style="font-family:monospace>" Aye! Going on the account to get ye treasure, landlubber!</h1>');
-});
+  if(!info.dn)
+    res.send('error')
+  else{
+    torrentCollection.add({link:magnetUrl, title:info.dn || "Unknown"})
+    res.send('<h1 style="font-family:monospace>" Aye! Going on the account to get ye treasure, landlubber!</h1>');
+  }
+ });
 
 app.get('/loot', function(req, res){
 	res.sendFile('add.html', {root:path.join(__dirname, 'static')})

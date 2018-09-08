@@ -4,3 +4,5 @@ run
 cargo
 shiplog.log
 *.log
+#qckwinsvc daemon
+daemon
